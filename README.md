@@ -1,0 +1,2 @@
+# MotionControllerManager-
+WinMRでモーションコントローラの操作に対してイベント制御を可能にする部品です。
