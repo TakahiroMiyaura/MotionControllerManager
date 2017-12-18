@@ -5,9 +5,10 @@
 using System;
 using System.Collections.Generic;
 using HoloToolkit.Unity;
+using HoloToolkit.Unity.InputModule;
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
-
+using Cursor = HoloToolkit.Unity.InputModule.Cursor;
 #if UNITY_WSA && UNITY_2017_2_OR_NEWER
 using System.Collections.Generic;
 using UnityEngine.XR.WSA.Input;
@@ -211,9 +212,11 @@ namespace Assets.MotionControl.Scripts
 
         private void Start()
         {
-            var obj = new GameObject("LaserPointers");
+            var parent = new GameObject("LaserPointers");
             if (RightLaserPointer == null)
             {
+                var obj = new GameObject("Right");
+                obj.transform.SetParent(parent.transform);
                 _rightLaserPointer = obj.AddComponent<LineRenderer>();
                 InitializeLaserPointer(_rightLaserPointer);
             }
@@ -223,6 +226,8 @@ namespace Assets.MotionControl.Scripts
             }
             if (LeftLaserPointer == null)
             {
+                var obj = new GameObject("Left");
+                obj.transform.SetParent(parent.transform);
                 _leftLaserPointer = obj.AddComponent<LineRenderer>();
                 InitializeLaserPointer(_leftLaserPointer);
             }
@@ -445,6 +450,20 @@ namespace Assets.MotionControl.Scripts
                 });
         }
 
+        public Cursor PointerCursor
+        {
+            get
+            {
+
+                var simpleSinglePointerSelector = FindObjectsOfType<SimpleSinglePointerSelector>();
+                if (simpleSinglePointerSelector != null && simpleSinglePointerSelector.Length == 1)
+                {
+                    return simpleSinglePointerSelector[0].Cursor;
+                }
+                return null;
+            }
+        }
+
         private void InteractionSourceLost(InteractionSourceLostEventArgs obj)
         {
             _controllers.Remove(obj.state.source.id);
@@ -467,12 +486,11 @@ namespace Assets.MotionControl.Scripts
                 obj.state.sourcePose.TryGetPosition(out controllerPosition, InteractionSourceNode.Grip);
                 obj.state.sourcePose.TryGetRotation(out controllerRotation, InteractionSourceNode.Grip);
 
-                _leftLaserPointer.positionCount = 2;
-                _leftLaserPointer.SetPosition(0, pointerPosition);
-                _leftLaserPointer.SetPosition(1, controllerPosition);
-
-                SetLaserPointer(obj, handedness, controllerPosition, pointerPosition);
-
+                
+               if(PointerCursor != null)
+                { 
+                    SetLaserPointer(obj, handedness, controllerPosition, PointerCursor.Position);
+                }
                 if (obj.state.grasped && !motionControllerState.Grasped)
                 {
                     Debug.Log("OnGrasped");
@@ -595,7 +613,7 @@ namespace Assets.MotionControl.Scripts
             lineRenderer.positionCount = 0;
             lineRenderer.startWidth = 0.005f;
             lineRenderer.endWidth = 0.005f;
-            var material = new Material(Shader.Find("Diffuse"));
+            var material = new Material(Shader.Find("Sprites/Default"));
             material.color = Color.white;
             lineRenderer.material = material;
         }

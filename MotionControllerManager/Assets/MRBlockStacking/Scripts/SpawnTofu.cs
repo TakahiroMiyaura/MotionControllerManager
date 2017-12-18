@@ -63,16 +63,15 @@ public class SpawnTofu : MonoBehaviour
             Vector3 gripPosition;
             state.sourcePose.TryGetPosition(out gripPosition, InteractionSourceNode.Grip);
 
-            Vector3 forward;
-            state.sourcePose.TryGetForward(out forward, InteractionSourceNode.Grip);
-
+            Vector3 forward = (MotionControllerManager.Instance.PointerCursor.Position- gripPosition).normalized;
+            Debug.Log("TTTT"+forward);
             Quaternion gripRotation;
             state.sourcePose.TryGetRotation(out gripRotation, InteractionSourceNode.Grip);
             
             if (_manipulateObj == null)
             {
                 RaycastHit hit;
-                if (Physics.Raycast(gripPosition, forward.normalized, out hit, Mathf.Infinity))
+                if (Physics.Raycast(gripPosition, forward, out hit, Mathf.Infinity))
                 {
 
                     Debug.Log("Hit!!");
@@ -119,6 +118,7 @@ public class SpawnTofu : MonoBehaviour
         var instantiate = GameObject.Instantiate(Tofu);
         _genObject.Enqueue(instantiate);
         var rigid = instantiate.AddComponent<Rigidbody>();
+        rigid.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
         var state = (InteractionSourceState) sender;
 
         Vector3 gripPosition;

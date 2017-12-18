@@ -54,10 +54,10 @@ MonoBehaviour:
   LeftLaserPointer: {fileID: 0}
   LeftGrasped: 0
   LeftMenuDown: 0
-  LeftSelectDown: 1
+  LeftSelectDown: 0
   LeftThumbstickDown: 0
   LeftTouchpadDown: 0
-  LeftTouchpadTouched: 1
+  LeftTouchpadTouched: 0
   RightLaserPointer: {fileID: 0}
   RightGrasped: 0
   RightMenuDown: 0
