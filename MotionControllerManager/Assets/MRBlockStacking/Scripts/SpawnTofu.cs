@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Assets.MotionControl.Scripts;
+using Assets.MotionController.Scripts;
+using HoloToolkit.Unity;
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 
@@ -64,7 +65,6 @@ public class SpawnTofu : MonoBehaviour
             state.sourcePose.TryGetPosition(out gripPosition, InteractionSourceNode.Grip);
 
             Vector3 forward = (MotionControllerManager.Instance.PointerCursor.Position- gripPosition).normalized;
-            Debug.Log("TTTT"+forward);
             Quaternion gripRotation;
             state.sourcePose.TryGetRotation(out gripRotation, InteractionSourceNode.Grip);
             
@@ -123,7 +123,10 @@ public class SpawnTofu : MonoBehaviour
 
         Vector3 gripPosition;
         state.sourcePose.TryGetPosition(out gripPosition, InteractionSourceNode.Grip);
-
+        if (CameraCache.Main.transform.parent != null)
+        {
+            gripPosition = CameraCache.Main.transform.parent.TransformPoint(gripPosition);
+        }
         instantiate.transform.position = gripPosition;
 
         Vector3 forward;

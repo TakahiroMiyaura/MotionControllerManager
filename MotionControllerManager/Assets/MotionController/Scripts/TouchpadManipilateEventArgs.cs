@@ -5,22 +5,19 @@
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 
-namespace Assets.MotionControl.Scripts
+namespace Assets.MotionController.Scripts
 {
-    public partial class MotionControllerManager
+    public class TouchpadManipilateEventArgs : MotionControllerEventArgs
     {
-        public class TouchpadManipilateEventArgs : MotionControllerEventArgs
+        public TouchpadManipilateEventArgs(InteractionSourceState sourceState, bool touchpadPressed, bool touchpadTouch, Vector2 touchpadPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
         {
-            public TouchpadManipilateEventArgs(InteractionSourceState sourceState, bool touchpadPressed, bool touchpadTouch, Vector2 touchpadPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
-            {
-                TouchpadPressed = touchpadPressed;
-                TouchpadTouch = touchpadTouch;
-                TouchpadPosition = touchpadPosition;
-            }
-
-            public bool TouchpadPressed { get; private set; }
-            public bool TouchpadTouch { get; private set; }
-            public Vector2 TouchpadPosition { get; private set; }
+            TouchpadPressed = touchpadPressed;
+            TouchpadTouch = touchpadTouch;
+            TouchpadPosition = touchpadPosition;
         }
+
+        public bool TouchpadPressed { get; private set; }
+        public bool TouchpadTouch { get; private set; }
+        public Vector2 TouchpadPosition { get; private set; }
     }
 }

@@ -4,20 +4,18 @@
 
 using UnityEngine.XR.WSA.Input;
 
-namespace Assets.MotionControl.Scripts
+namespace Assets.MotionController.Scripts
 {
-    public partial class MotionControllerManager
-    {
-        public class SelectManipilateEventArgs : MotionControllerEventArgs
-        {
-            public SelectManipilateEventArgs(InteractionSourceState sourceState, bool selectPressed, float selectPressedAmount, InteractionSourceHandedness handedness) : base(sourceState,handedness)
-            {
-                SelectPressed = selectPressed;
-                SelectPressedAmount = selectPressedAmount;
-            }
 
-            public bool SelectPressed { get; private set; }
-            public float SelectPressedAmount { get; private set; }
+    public class SelectManipilateEventArgs : MotionControllerEventArgs
+    {
+        public SelectManipilateEventArgs(InteractionSourceState sourceState, bool selectPressed, float selectPressedAmount, InteractionSourceHandedness handedness) : base(sourceState,handedness)
+        {
+            SelectPressed = selectPressed;
+            SelectPressedAmount = selectPressedAmount;
         }
+
+        public bool SelectPressed { get; private set; }
+        public float SelectPressedAmount { get; private set; }
     }
 }

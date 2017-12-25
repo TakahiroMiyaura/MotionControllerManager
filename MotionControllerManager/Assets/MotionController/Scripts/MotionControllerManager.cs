@@ -9,13 +9,9 @@ using HoloToolkit.Unity.InputModule;
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 using Cursor = HoloToolkit.Unity.InputModule.Cursor;
-#if UNITY_WSA && UNITY_2017_2_OR_NEWER
-using System.Collections.Generic;
-using UnityEngine.XR.WSA.Input;
 
-#endif
 
-namespace Assets.MotionControl.Scripts
+namespace Assets.MotionController.Scripts
 {
     /// <summary>
     ///     Motion Controller Manager is responsible for managing input sources and dispatching relevant events to the
@@ -142,8 +138,8 @@ namespace Assets.MotionControl.Scripts
         /// <summary>
         ///     Occurs when motion controller is manipulated.
         /// </summary>
-        [HideInInspector] public EventHandler<MotionControllerManipilateEventArgs> MotionControllerManipulate;
-
+        [HideInInspector] public EventHandler<MotionControllerPositionEventArgs> MotionControllerPositionChanged;
+        
         /// <summary>
         ///     Occurs when select button of motion controller is held.
         /// </summary>
@@ -294,16 +290,16 @@ namespace Assets.MotionControl.Scripts
         }
 
         /// <summary>
-        ///     Raises the MotionControllerManipulate event.
+        ///     Raises the MotionControllerPositionChanged event.
         /// </summary>
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
         /// <param name="e">An <see cref="EventArgs" /> that contains the event data. </param>
-        public virtual void OnMotionControllerManipulate(object sender, MotionControllerManipilateEventArgs e)
+        public virtual void OnMotionControllerPositionChanged(object sender, MotionControllerPositionEventArgs e)
         {
-            if (MotionControllerManipulate != null)
-                MotionControllerManipulate(sender, e);
+            if (MotionControllerPositionChanged != null)
+                MotionControllerPositionChanged(sender, e);
         }
 
         /// <summary>
@@ -438,6 +434,20 @@ namespace Assets.MotionControl.Scripts
 
         #endregion
 
+
+        public Cursor PointerCursor
+        {
+            get
+            {
+                var simpleSinglePointerSelector = FindObjectsOfType<SimpleSinglePointerSelector>();
+                if (simpleSinglePointerSelector != null && simpleSinglePointerSelector.Length == 1)
+                {
+                    return simpleSinglePointerSelector[0].Cursor;
+                }
+                return null;
+            }
+        }
+
 #if UNITY_WSA && UNITY_2017_2_OR_NEWER
         private void InteractionSourceDetected(InteractionSourceDetectedEventArgs obj)
         {
@@ -448,20 +458,6 @@ namespace Assets.MotionControl.Scripts
                     Handedness =
                         obj.state.source.handedness
                 });
-        }
-
-        public Cursor PointerCursor
-        {
-            get
-            {
-
-                var simpleSinglePointerSelector = FindObjectsOfType<SimpleSinglePointerSelector>();
-                if (simpleSinglePointerSelector != null && simpleSinglePointerSelector.Length == 1)
-                {
-                    return simpleSinglePointerSelector[0].Cursor;
-                }
-                return null;
-            }
         }
 
         private void InteractionSourceLost(InteractionSourceLostEventArgs obj)
@@ -486,8 +482,13 @@ namespace Assets.MotionControl.Scripts
                 obj.state.sourcePose.TryGetPosition(out controllerPosition, InteractionSourceNode.Grip);
                 obj.state.sourcePose.TryGetRotation(out controllerRotation, InteractionSourceNode.Grip);
 
-                
-               if(PointerCursor != null)
+                if (CameraCache.Main.transform.parent != null)
+                {
+                    pointerPosition = CameraCache.Main.transform.parent.TransformPoint(pointerPosition);
+                    controllerPosition = CameraCache.Main.transform.parent.TransformPoint(controllerPosition);
+                }
+
+                if (PointerCursor != null)
                 { 
                     SetLaserPointer(obj, handedness, controllerPosition, PointerCursor.Position);
                 }
@@ -599,7 +600,7 @@ namespace Assets.MotionControl.Scripts
                 }
                 motionControllerState.TouchpadTouched = obj.state.touchpadTouched;
 
-                OnMotionControllerManipulate(obj.state, new MotionControllerManipilateEventArgs(obj.state,
+                OnMotionControllerPositionChanged(obj.state, new MotionControllerPositionEventArgs(obj.state,
                     pointerPosition
                     , pointerRotation, controllerPosition
                     , controllerRotation

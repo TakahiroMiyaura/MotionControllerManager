@@ -5,20 +5,18 @@
 using System;
 using UnityEngine.XR.WSA.Input;
 
-namespace Assets.MotionControl.Scripts
+namespace Assets.MotionController.Scripts
 {
-    public partial class MotionControllerManager
-    {
-        public class MotionControllerEventArgs : EventArgs
-        {
-            public MotionControllerEventArgs(InteractionSourceState sourceState, InteractionSourceHandedness handedness)
-            {
-                SourceState = sourceState;
-                Handedness = handedness;
-            }
 
-            public InteractionSourceState SourceState { get; private set; }
-            public InteractionSourceHandedness Handedness { get; private set; }
+    public class MotionControllerEventArgs : EventArgs
+    {
+        public MotionControllerEventArgs(InteractionSourceState sourceState, InteractionSourceHandedness handedness)
+        {
+            SourceState = sourceState;
+            Handedness = handedness;
         }
+
+        public InteractionSourceState SourceState { get; private set; }
+        public InteractionSourceHandedness Handedness { get; private set; }
     }
 }

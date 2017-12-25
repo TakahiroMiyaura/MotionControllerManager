@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Assets.MotionControl.Scripts;
+using Assets.MotionController.Scripts;
 using UnityEditor;
 using UnityEngine;
 

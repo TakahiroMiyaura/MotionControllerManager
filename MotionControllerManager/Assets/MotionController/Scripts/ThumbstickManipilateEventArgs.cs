@@ -5,20 +5,17 @@
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 
-namespace Assets.MotionControl.Scripts
+namespace Assets.MotionController.Scripts
 {
-    public partial class MotionControllerManager
+    public class ThumbstickManipilateEventArgs : MotionControllerEventArgs
     {
-        public class ThumbstickManipilateEventArgs : MotionControllerEventArgs
+        public ThumbstickManipilateEventArgs(InteractionSourceState sourceState, bool thumbstickPressed, Vector2 thumbstickPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
         {
-            public ThumbstickManipilateEventArgs(InteractionSourceState sourceState, bool thumbstickPressed, Vector2 thumbstickPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
-            {
-                ThumbstickPressed = thumbstickPressed;
-                ThumbstickPosition = thumbstickPosition;
-            }
-
-            public bool ThumbstickPressed { get; private set; }
-            public Vector2 ThumbstickPosition { get; private set; }
+            ThumbstickPressed = thumbstickPressed;
+            ThumbstickPosition = thumbstickPosition;
         }
+
+        public bool ThumbstickPressed { get; private set; }
+        public Vector2 ThumbstickPosition { get; private set; }
     }
 }
