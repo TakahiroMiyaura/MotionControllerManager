@@ -20,11 +20,11 @@ WinMRでモーションコントローラの操作に対してイベント制御
 |SelectHold|Occurs when select button of motion controller is held.|
 |SelectUp|Occurs when select button of motion controller is released.|
 |ThumbstickDown|Occurs when thumbstick button of motion controller is pressed.|
-|ThumbstickHold|Occurs when thumbstick button of motion controller is held.|
+|ThumbstickManipulate|Occurs when thumbstick button of motion controller is Manipulated.|
 |ThumbstickUp|Occurs when thumbstick button of motion controller is released.|
 |TouchpadTouch|Occurs when touchpad button of motion controller is touched.|
 |TouchpadDown|Occurs when touchpad button of motion controller is pressed.|
-|TouchpadHold|Occurs when touchpad button of motion controller is held.|
+|TouchpadManipulate|Occurs when touchpad button of motion controller is Manipulated.|
 |TouchpadUp|Occurs when touchpad button of motion controller is released.|
 
 #### 各ボタンの押下時にモーションコントローラのポインターに向けてマーカーを出力します。
