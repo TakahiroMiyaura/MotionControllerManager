@@ -6,7 +6,7 @@ using Assets.MotionController.Scripts;
 using UnityEditor;
 using UnityEngine;
 
-namespace Assets.MotionControl.Editor
+namespace Assets.MotionController.Editor
 {
 
     [CustomEditor(typeof(MotionControllerManager))]

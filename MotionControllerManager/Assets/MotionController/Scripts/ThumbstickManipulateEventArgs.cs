@@ -7,9 +7,9 @@ using UnityEngine.XR.WSA.Input;
 
 namespace Assets.MotionController.Scripts
 {
-    public class ThumbstickManipilateEventArgs : MotionControllerEventArgs
+    public class ThumbstickManipulateEventArgs : MotionControllerEventArgs
     {
-        public ThumbstickManipilateEventArgs(InteractionSourceState sourceState, bool thumbstickPressed, Vector2 thumbstickPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
+        public ThumbstickManipulateEventArgs(InteractionSourceState sourceState, bool thumbstickPressed, Vector2 thumbstickPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
         {
             ThumbstickPressed = thumbstickPressed;
             ThumbstickPosition = thumbstickPosition;

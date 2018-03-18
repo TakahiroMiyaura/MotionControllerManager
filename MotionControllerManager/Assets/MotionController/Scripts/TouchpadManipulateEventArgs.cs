@@ -7,9 +7,9 @@ using UnityEngine.XR.WSA.Input;
 
 namespace Assets.MotionController.Scripts
 {
-    public class TouchpadManipilateEventArgs : MotionControllerEventArgs
+    public class TouchpadManipulateEventArgs : MotionControllerEventArgs
     {
-        public TouchpadManipilateEventArgs(InteractionSourceState sourceState, bool touchpadPressed, bool touchpadTouch, Vector2 touchpadPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
+        public TouchpadManipulateEventArgs(InteractionSourceState sourceState, bool touchpadPressed, bool touchpadTouch, Vector2 touchpadPosition, InteractionSourceHandedness handedness) : base(sourceState,handedness)
         {
             TouchpadPressed = touchpadPressed;
             TouchpadTouch = touchpadTouch;

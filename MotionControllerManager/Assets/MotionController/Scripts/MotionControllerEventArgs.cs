@@ -7,7 +7,6 @@ using UnityEngine.XR.WSA.Input;
 
 namespace Assets.MotionController.Scripts
 {
-
     public class MotionControllerEventArgs : EventArgs
     {
         public MotionControllerEventArgs(InteractionSourceState sourceState, InteractionSourceHandedness handedness)

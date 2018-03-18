@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright(c) 2018 Takahiro Miyaura
+// Released under the MIT license
+// http://opensource.org/licenses/mit-license.php
+
+using System;
 using Assets.MotionController.Scripts;
 using UnityEngine;
 using UnityEngine.XR.WSA.Input;
 
 public class MotionControllerTest : MonoBehaviour
 {
-
     public TextMesh text;
 
     public GameObject GameObjectTouchpadTouch;
@@ -38,10 +39,10 @@ public class MotionControllerTest : MonoBehaviour
     private Renderer _materialGameObjectGraspedRelease;
     private Renderer _materialGameObjectGraspedPress;
     private Renderer _materialGameObjectTouchpadTouch;
-    
-    // Use this for initialization
-    void Start () {
 
+    // Use this for initialization
+    private void Start()
+    {
         _materialGameObjectTouchpadPress = GameObjectTouchpadPress.GetComponent<Renderer>();
         _materialGameObjectTouchpadRelease = GameObjectTouchpadRelease.GetComponent<Renderer>();
         _materialGameObjectTouchpadManupilate = GameObjectTouchpadManupilate.GetComponent<Renderer>();
@@ -59,18 +60,18 @@ public class MotionControllerTest : MonoBehaviour
 
         MotionControllerManager.Instance.TouchpadTouch += TouchpadTouch;
         MotionControllerManager.Instance.Grasped += GraspedPress;
-        MotionControllerManager.Instance.Released+= GraspedRelease;
-        MotionControllerManager.Instance.MenuDown+= MenuPress;
-        MotionControllerManager.Instance.MenuUp+= MenuRelease;
-        MotionControllerManager.Instance.SelectHold+= SelectManupilate;
-        MotionControllerManager.Instance.SelectDown+= SelectPress;
-        MotionControllerManager.Instance.SelectUp+= SelectRelease;
-        MotionControllerManager.Instance.ThumbstickHold+= ThumbstickManupilate;
-        MotionControllerManager.Instance.ThumbstickDown+= ThumbstickPress;
-        MotionControllerManager.Instance.ThumbstickUp+= ThumbstickRelease;
-        MotionControllerManager.Instance.TouchpadHold+= TouchpadManupilate;
-        MotionControllerManager.Instance.TouchpadUp+= TouchpadRelease;
-        MotionControllerManager.Instance.TouchpadDown+= TouchpadPress;
+        MotionControllerManager.Instance.Released += GraspedRelease;
+        MotionControllerManager.Instance.MenuDown += MenuPress;
+        MotionControllerManager.Instance.MenuUp += MenuRelease;
+        MotionControllerManager.Instance.SelectHold += SelectManupilate;
+        MotionControllerManager.Instance.SelectDown += SelectPress;
+        MotionControllerManager.Instance.SelectUp += SelectRelease;
+        MotionControllerManager.Instance.ThumbstickManipulate += ThumbstickManupilate;
+        MotionControllerManager.Instance.ThumbstickDown += ThumbstickPress;
+        MotionControllerManager.Instance.ThumbstickUp += ThumbstickRelease;
+        MotionControllerManager.Instance.TouchpadManipulate += TouchpadManupilate;
+        MotionControllerManager.Instance.TouchpadUp += TouchpadRelease;
+        MotionControllerManager.Instance.TouchpadDown += TouchpadPress;
         var material = new Material(Shader.Find("Diffuse"));
         material.color = Color.red;
         _materialGameObjectTouchpadTouch.material = material;
@@ -119,25 +120,24 @@ public class MotionControllerTest : MonoBehaviour
     {
         _materialGameObjectTouchpadPress.material.color = Color.blue;
         _materialGameObjectTouchpadRelease.material.color = Color.red;
-        var state = (InteractionSourceState)sender;
+        var state = (InteractionSourceState) sender;
         text.text = "Handedness:" + state.source.handedness + " - TouchpadDown";
     }
 
     private void TouchpadRelease(object sender, EventArgs eventArgs)
     {
-
         _materialGameObjectTouchpadPress.material.color = Color.red;
         _materialGameObjectTouchpadManupilate.material.color = Color.red;
         _materialGameObjectTouchpadRelease.material.color = Color.blue;
         _materialGameObjectTouchpadTouch.material.color = Color.red;
-        var state = (InteractionSourceState)sender;
+        var state = (InteractionSourceState) sender;
         text.text = "Handedness:" + state.source.handedness + " - TouchpadUp";
     }
 
     private void TouchpadManupilate(object sender, EventArgs eventArgs)
     {
         _materialGameObjectTouchpadManupilate.material.color = Color.blue;
-        var state = (InteractionSourceState)sender;
+        var state = (InteractionSourceState) sender;
         text.text = "Handedness:" + state.source.handedness + " - TouchpadHold";
     }
 
@@ -146,10 +146,10 @@ public class MotionControllerTest : MonoBehaviour
         _materialGameObjectThumbstickPress.material.color = Color.red;
         _materialGameObjectThumbstickManupilate.material.color = Color.red;
         _materialGameObjectThumbstickRelease.material.color = Color.blue;
-        var state = (InteractionSourceState)sender;
+        var state = (InteractionSourceState) sender;
         text.text = "Handedness:" + state.source.handedness + " - ThumbstickUp";
     }
-    
+
     private void ThumbstickPress(object sender, EventArgs eventArgs)
     {
         _materialGameObjectThumbstickPress.material.color = Color.blue;
@@ -229,7 +229,7 @@ public class MotionControllerTest : MonoBehaviour
     }
 
     // Update is called once per frame
-	void Update () {
-		
-	}
+    private void Update()
+    {
+    }
 }

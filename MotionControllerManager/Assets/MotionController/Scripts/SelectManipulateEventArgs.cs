@@ -6,10 +6,9 @@ using UnityEngine.XR.WSA.Input;
 
 namespace Assets.MotionController.Scripts
 {
-
-    public class SelectManipilateEventArgs : MotionControllerEventArgs
+    public class SelectManipulateEventArgs : MotionControllerEventArgs
     {
-        public SelectManipilateEventArgs(InteractionSourceState sourceState, bool selectPressed, float selectPressedAmount, InteractionSourceHandedness handedness) : base(sourceState,handedness)
+        public SelectManipulateEventArgs(InteractionSourceState sourceState, bool selectPressed, float selectPressedAmount, InteractionSourceHandedness handedness) : base(sourceState,handedness)
         {
             SelectPressed = selectPressed;
             SelectPressedAmount = selectPressedAmount;

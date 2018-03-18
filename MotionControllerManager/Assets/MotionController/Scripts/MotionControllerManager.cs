@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Generic;
 using HoloToolkit.Unity;
-using HoloToolkit.Unity.InputModule;
 using UnityEngine;
-using UnityEngine.XR.WSA.Input;
-using Cursor = HoloToolkit.Unity.InputModule.Cursor;
 
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR.WSA.Input;
+#endif
 
 namespace Assets.MotionController.Scripts
 {
@@ -17,7 +17,7 @@ namespace Assets.MotionController.Scripts
     ///     Motion Controller Manager is responsible for managing input sources and dispatching relevant events to the
     ///     appropriate input handlers.
     /// </summary>
-    public partial class MotionControllerManager : SingleInstance<MotionControllerManager>
+    public partial class MotionControllerManager : Singleton<MotionControllerManager>
     {
         #region private fields
 
@@ -39,6 +39,11 @@ namespace Assets.MotionController.Scripts
         #endregion
 
         #region public properties
+
+        /// <summary>
+        ///     Gets or sets the output debug log.
+        /// </summary>
+        public bool IsDebugLog = false;
 
         /// <summary>
         ///     Gets or sets the Line Renderer for the right controller.
@@ -138,64 +143,65 @@ namespace Assets.MotionController.Scripts
         /// <summary>
         ///     Occurs when motion controller is manipulated.
         /// </summary>
-        [HideInInspector] public EventHandler<MotionControllerPositionEventArgs> MotionControllerPositionChanged;
-        
+        [HideInInspector] public EventHandler<MotionControllerManipulateEventArgs> MotionControllerManipulate;
+
         /// <summary>
         ///     Occurs when select button of motion controller is held.
         /// </summary>
-        [HideInInspector] public EventHandler<SelectManipilateEventArgs> SelectHold;
+        [HideInInspector] public EventHandler<SelectManipulateEventArgs> SelectHold;
 
         /// <summary>
         ///     Occurs when select button of motion controller is pressed.
         /// </summary>
-        [HideInInspector] public EventHandler<SelectManipilateEventArgs> SelectDown;
+        [HideInInspector] public EventHandler<SelectManipulateEventArgs> SelectDown;
 
         /// <summary>
         ///     Occurs when select button of motion controller is released.
         /// </summary>
-        [HideInInspector] public EventHandler<SelectManipilateEventArgs> SelectUp;
+        [HideInInspector] public EventHandler<SelectManipulateEventArgs> SelectUp;
 
         /// <summary>
-        ///     Occurs when thumbstick button of motion controller is held.
+        ///     Occurs when thumbstick button of motion controller is manipulate.
         /// </summary>
-        [HideInInspector] public EventHandler<ThumbstickManipilateEventArgs> ThumbstickHold;
+        [HideInInspector] public EventHandler<ThumbstickManipulateEventArgs> ThumbstickManipulate;
 
         /// <summary>
         ///     Occurs when thumbstick button of motion controller is pressed.
         /// </summary>
-        [HideInInspector] public EventHandler<ThumbstickManipilateEventArgs> ThumbstickDown;
+        [HideInInspector] public EventHandler<ThumbstickManipulateEventArgs> ThumbstickDown;
 
         /// <summary>
         ///     Occurs when thumbstick button of motion controller is released.
         /// </summary>
-        [HideInInspector] public EventHandler<ThumbstickManipilateEventArgs> ThumbstickUp;
+        [HideInInspector] public EventHandler<ThumbstickManipulateEventArgs> ThumbstickUp;
 
         /// <summary>
         ///     Occurs when touchpad button of motion controller is held.
         /// </summary>
-        [HideInInspector] public EventHandler<TouchpadManipilateEventArgs> TouchpadHold;
+        [HideInInspector] public EventHandler<TouchpadManipulateEventArgs> TouchpadManipulate;
 
         /// <summary>
         ///     Occurs when touchpad button of motion controller is pressed.
         /// </summary>
-        [HideInInspector] public EventHandler<TouchpadManipilateEventArgs> TouchpadDown;
+        [HideInInspector] public EventHandler<TouchpadManipulateEventArgs> TouchpadDown;
 
         /// <summary>
         ///     Occurs when touchpad button of motion controller is released.
         /// </summary>
-        [HideInInspector] public EventHandler<TouchpadManipilateEventArgs> TouchpadUp;
+        [HideInInspector] public EventHandler<TouchpadManipulateEventArgs> TouchpadUp;
 
         /// <summary>
         ///     Occurs when touchpad button of motion controller is touched.
         /// </summary>
-        [HideInInspector] public EventHandler<TouchpadManipilateEventArgs> TouchpadTouch;
+        [HideInInspector] public EventHandler<TouchpadManipulateEventArgs> TouchpadTouch;
 
         #endregion
 
         #region Unity Methods
 
-        private void Awake()
+        protected override void Awake()
         {
+            base.Awake();
 #if UNITY_WSA && UNITY_2017_2_OR_NEWER
             _controllers = new Dictionary<uint, MotionControllerState>();
 
@@ -208,12 +214,14 @@ namespace Assets.MotionController.Scripts
 
         private void Start()
         {
-            var parent = new GameObject("LaserPointers");
+            var obj = new GameObject("LaserPointers");
+            var objL = new GameObject("LeftLaserPointers");
+            objL.transform.SetParent(obj.transform);
+            var objR = new GameObject("RightLaserPointers");
+            objR.transform.SetParent(obj.transform);
             if (RightLaserPointer == null)
             {
-                var obj = new GameObject("Right");
-                obj.transform.SetParent(parent.transform);
-                _rightLaserPointer = obj.AddComponent<LineRenderer>();
+                _rightLaserPointer = objR.AddComponent<LineRenderer>();
                 InitializeLaserPointer(_rightLaserPointer);
             }
             else
@@ -222,9 +230,7 @@ namespace Assets.MotionController.Scripts
             }
             if (LeftLaserPointer == null)
             {
-                var obj = new GameObject("Left");
-                obj.transform.SetParent(parent.transform);
-                _leftLaserPointer = obj.AddComponent<LineRenderer>();
+                _leftLaserPointer = objL.AddComponent<LineRenderer>();
                 InitializeLaserPointer(_leftLaserPointer);
             }
             else
@@ -290,16 +296,16 @@ namespace Assets.MotionController.Scripts
         }
 
         /// <summary>
-        ///     Raises the MotionControllerPositionChanged event.
+        ///     Raises the MotionControllerManipulate event.
         /// </summary>
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
         /// <param name="e">An <see cref="EventArgs" /> that contains the event data. </param>
-        public virtual void OnMotionControllerPositionChanged(object sender, MotionControllerPositionEventArgs e)
+        public virtual void OnMotionControllerManipulate(object sender, MotionControllerManipulateEventArgs e)
         {
-            if (MotionControllerPositionChanged != null)
-                MotionControllerPositionChanged(sender, e);
+            if (MotionControllerManipulate != null)
+                MotionControllerManipulate(sender, e);
         }
 
         /// <summary>
@@ -308,8 +314,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="SelectManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnSelectDown(object sender, SelectManipilateEventArgs e)
+        /// <param name="e">An <see cref="SelectManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnSelectDown(object sender, SelectManipulateEventArgs e)
         {
             if (SelectDown != null)
                 SelectDown(sender, e);
@@ -321,8 +327,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="SelectManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnSelectHold(object sender, SelectManipilateEventArgs e)
+        /// <param name="e">An <see cref="SelectManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnSelectHold(object sender, SelectManipulateEventArgs e)
         {
             if (SelectHold != null)
                 SelectHold(sender, e);
@@ -334,8 +340,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="SelectManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnSelectUp(object sender, SelectManipilateEventArgs e)
+        /// <param name="e">An <see cref="SelectManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnSelectUp(object sender, SelectManipulateEventArgs e)
         {
             if (SelectUp != null)
                 SelectUp(sender, e);
@@ -347,24 +353,24 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="ThumbstickManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnThumbstickDown(object sender, ThumbstickManipilateEventArgs e)
+        /// <param name="e">An <see cref="ThumbstickManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnThumbstickDown(object sender, ThumbstickManipulateEventArgs e)
         {
             if (ThumbstickDown != null)
                 ThumbstickDown(sender, e);
         }
 
         /// <summary>
-        ///     Raises the ThumbstickHold event.
+        ///     Raises the ThumbstickManipulate event.
         /// </summary>
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="ThumbstickManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnThumbstickHold(object sender, ThumbstickManipilateEventArgs e)
+        /// <param name="e">An <see cref="ThumbstickManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnThumbstickManipulate(object sender, ThumbstickManipulateEventArgs e)
         {
-            if (ThumbstickHold != null)
-                ThumbstickHold(sender, e);
+            if (ThumbstickManipulate != null)
+                ThumbstickManipulate(sender, e);
         }
 
         /// <summary>
@@ -373,8 +379,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="ThumbstickManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnThumbstickUp(object sender, ThumbstickManipilateEventArgs e)
+        /// <param name="e">An <see cref="ThumbstickManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnThumbstickUp(object sender, ThumbstickManipulateEventArgs e)
         {
             if (ThumbstickUp != null)
                 ThumbstickUp(sender, e);
@@ -386,8 +392,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="TouchpadManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnTouchpadDown(object sender, TouchpadManipilateEventArgs e)
+        /// <param name="e">An <see cref="TouchpadManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnTouchpadDown(object sender, TouchpadManipulateEventArgs e)
         {
             if (TouchpadDown != null)
                 TouchpadDown(sender, e);
@@ -399,8 +405,8 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="TouchpadManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnTouchpadUp(object sender, TouchpadManipilateEventArgs e)
+        /// <param name="e">An <see cref="TouchpadManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnTouchpadUp(object sender, TouchpadManipulateEventArgs e)
         {
             if (TouchpadUp != null)
                 TouchpadUp(sender, e);
@@ -412,41 +418,27 @@ namespace Assets.MotionController.Scripts
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="TouchpadManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnTouchpadTouch(object sender, TouchpadManipilateEventArgs e)
+        /// <param name="e">An <see cref="TouchpadManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnTouchpadTouch(object sender, TouchpadManipulateEventArgs e)
         {
             if (TouchpadTouch != null)
                 TouchpadTouch(sender, e);
         }
 
         /// <summary>
-        ///     Raises the TouchpadHold event.
+        ///     Raises the TouchpadManipulate event.
         /// </summary>
         /// <param name="sender">
         ///     <see cref="InteractionSourceState" />
         /// </param>
-        /// <param name="e">An <see cref="TouchpadManipilateEventArgs" /> that contains the event data. </param>
-        public virtual void OnTouchpadHold(object sender, TouchpadManipilateEventArgs e)
+        /// <param name="e">An <see cref="TouchpadManipulateEventArgs" /> that contains the event data. </param>
+        public virtual void OnTouchpadManipulate(object sender, TouchpadManipulateEventArgs e)
         {
-            if (TouchpadHold != null)
-                TouchpadHold(sender, e);
+            if (TouchpadManipulate != null)
+                TouchpadManipulate(sender, e);
         }
 
         #endregion
-
-
-        public Cursor PointerCursor
-        {
-            get
-            {
-                var simpleSinglePointerSelector = FindObjectsOfType<SimpleSinglePointerSelector>();
-                if (simpleSinglePointerSelector != null && simpleSinglePointerSelector.Length == 1)
-                {
-                    return simpleSinglePointerSelector[0].Cursor;
-                }
-                return null;
-            }
-        }
 
 #if UNITY_WSA && UNITY_2017_2_OR_NEWER
         private void InteractionSourceDetected(InteractionSourceDetectedEventArgs obj)
@@ -470,8 +462,7 @@ namespace Assets.MotionController.Scripts
             MotionControllerState motionControllerState;
             if (_controllers.TryGetValue(obj.state.source.id, out motionControllerState))
             {
-                Debug.Log("Event!");
-
+                
                 var handedness = obj.state.source.handedness;
                 Vector3 pointerPosition;
                 Vector3 controllerPosition;
@@ -481,25 +472,17 @@ namespace Assets.MotionController.Scripts
                 obj.state.sourcePose.TryGetRotation(out pointerRotation, InteractionSourceNode.Pointer);
                 obj.state.sourcePose.TryGetPosition(out controllerPosition, InteractionSourceNode.Grip);
                 obj.state.sourcePose.TryGetRotation(out controllerRotation, InteractionSourceNode.Grip);
+        
+                SetLaserPointer(obj, handedness, controllerPosition, pointerPosition);
 
-                if (CameraCache.Main.transform.parent != null)
-                {
-                    pointerPosition = CameraCache.Main.transform.parent.TransformPoint(pointerPosition);
-                    controllerPosition = CameraCache.Main.transform.parent.TransformPoint(controllerPosition);
-                }
-
-                if (PointerCursor != null)
-                { 
-                    SetLaserPointer(obj, handedness, controllerPosition, PointerCursor.Position);
-                }
                 if (obj.state.grasped && !motionControllerState.Grasped)
                 {
-                    Debug.Log("OnGrasped");
+                    OutputLog("OnGrasped");
                     OnGrasped(obj.state, new EventArgs());
                 }
                 else if (!obj.state.grasped && motionControllerState.Grasped)
                 {
-                    Debug.Log("OnReleased");
+                    OutputLog("OnReleased");
                     OnReleased(obj.state, new EventArgs());
                 }
                 motionControllerState.Grasped = obj.state.grasped;
@@ -507,114 +490,116 @@ namespace Assets.MotionController.Scripts
 
                 if (obj.state.menuPressed && !motionControllerState.MenuPressed)
                 {
-                    Debug.Log("OnMenuDown");
+                    OutputLog("OnMenuDown");
                     OnMenuDown(obj.state, new EventArgs());
                 }
                 else if (!obj.state.menuPressed && motionControllerState.MenuPressed)
                 {
-                    Debug.Log("OnMenuUp");
+                    OutputLog("OnMenuUp");
                     OnMenuUp(obj.state, new EventArgs());
                 }
                 motionControllerState.MenuPressed = obj.state.menuPressed;
 
 
-                var selectManipilateEventArgs = new SelectManipilateEventArgs(obj.state
+                var selectManipulateEventArgs = new SelectManipulateEventArgs(obj.state
                     , obj.state.selectPressed
                     , obj.state.selectPressedAmount
                     , handedness);
                 if (obj.state.selectPressed && !motionControllerState.SelectPressed)
                 {
-                    Debug.Log("OnSelectDown");
-                    OnSelectDown(obj.state, selectManipilateEventArgs);
+                    OutputLog("OnSelectDown");
+                    OnSelectDown(obj.state, selectManipulateEventArgs);
                 }
                 else if (!obj.state.selectPressed && motionControllerState.SelectPressed)
                 {
-                    Debug.Log("OnSelectUp");
-                    OnSelectUp(obj.state, selectManipilateEventArgs);
+                    OutputLog("OnSelectUp");
+                    OnSelectUp(obj.state, selectManipulateEventArgs);
                 }
                 else if (obj.state.selectPressed && motionControllerState.SelectPressed)
                 {
-                    Debug.Log("OnSelectHold");
-                    OnSelectHold(obj.state, selectManipilateEventArgs);
+                    OutputLog("OnSelectHold");
+                    OnSelectHold(obj.state, selectManipulateEventArgs);
                 }
                 motionControllerState.SelectPressed = obj.state.selectPressed;
 
-                var thumbstickManipilateEventArgs = new ThumbstickManipilateEventArgs(obj.state
+                var thumbstickManipulateEventArgs = new ThumbstickManipulateEventArgs(obj.state
                     , obj.state.thumbstickPressed
                     , obj.state.thumbstickPosition
                     , handedness);
                 if (obj.state.thumbstickPressed && !motionControllerState.ThumbstickPressed)
                 {
-                    Debug.Log("OnThumbstickDown");
-                    OnThumbstickDown(obj.state, thumbstickManipilateEventArgs);
+                    OutputLog("OnThumbstickDown");
+                    OnThumbstickDown(obj.state, thumbstickManipulateEventArgs);
                 }
                 else if (!obj.state.thumbstickPressed && motionControllerState.ThumbstickPressed)
                 {
-                    Debug.Log("OnThumbstickUp");
-                    OnThumbstickUp(obj.state, thumbstickManipilateEventArgs);
+                    OutputLog("OnThumbstickUp");
+                    OnThumbstickUp(obj.state, thumbstickManipulateEventArgs);
                 }
                 else if (motionControllerState.ThumbstickPressed && obj.state.thumbstickPressed)
                 {
-                    Debug.Log("OnThumbstickHold");
-                    OnThumbstickHold(obj.state, thumbstickManipilateEventArgs);
+                    OutputLog("OnThumbstickHold");
+                    OnThumbstickHold(obj.state, thumbstickManipulateEventArgs);
                 }
+
+                OnThumbstickManipulate(obj.state, thumbstickManipulateEventArgs);
                 motionControllerState.ThumbstickPressed = obj.state.thumbstickPressed;
 
 
-                var touchpadManipilateEventArgs = new TouchpadManipilateEventArgs(obj.state
+                var touchpadManipulateEventArgs = new TouchpadManipulateEventArgs(obj.state
                     , obj.state.touchpadPressed
                     , obj.state.touchpadTouched
                     , obj.state.touchpadPosition
                     , handedness);
                 if (obj.state.touchpadPressed && !motionControllerState.TouchpadPressed)
                 {
-                    Debug.Log("OnTouchpadDown");
-                    OnTouchpadDown(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnTouchpadDown");
+                    OnTouchpadDown(obj.state, touchpadManipulateEventArgs);
                 }
                 else if (!obj.state.touchpadPressed && motionControllerState.TouchpadPressed)
                 {
-                    Debug.Log("OnThumbstickHold");
-                    OnTouchpadUp(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnThumbstickHold");
+                    OnTouchpadUp(obj.state, touchpadManipulateEventArgs);
                 }
                 else if (motionControllerState.TouchpadPressed && obj.state.touchpadPressed)
                 {
-                    Debug.Log("OnTouchpadHold");
-                    OnTouchpadHold(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnTouchpadManipulate");
+                    OnTouchpadManipulate(obj.state, touchpadManipulateEventArgs);
                 }
                 motionControllerState.TouchpadPressed = obj.state.touchpadPressed;
 
                 if (obj.state.touchpadTouched && !motionControllerState.TouchpadTouched)
                 {
-                    Debug.Log("OnTouchpadTouch");
-                    OnTouchpadTouch(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnTouchpadTouch");
+                    OnTouchpadTouch(obj.state, touchpadManipulateEventArgs);
                 }
                 else if (!obj.state.touchpadTouched && motionControllerState.TouchpadTouched)
                 {
-                    Debug.Log("OnTouchpadUp");
-                    OnTouchpadUp(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnTouchpadUp");
+                    OnTouchpadUp(obj.state, touchpadManipulateEventArgs);
                 }
                 else if (motionControllerState.TouchpadTouched && obj.state.touchpadTouched)
                 {
-                    Debug.Log("OnTouchpadHold");
-                    OnTouchpadHold(obj.state, touchpadManipilateEventArgs);
+                    OutputLog("OnTouchpadManipulate");
+                    OnTouchpadManipulate(obj.state, touchpadManipulateEventArgs);
                 }
                 motionControllerState.TouchpadTouched = obj.state.touchpadTouched;
 
-                OnMotionControllerPositionChanged(obj.state, new MotionControllerPositionEventArgs(obj.state,
+                OnMotionControllerManipulate(obj.state, new MotionControllerManipulateEventArgs(obj.state,
                     pointerPosition
                     , pointerRotation, controllerPosition
                     , controllerRotation
                     , handedness));
             }
         }
-        
+
 #endif
         private void InitializeLaserPointer(LineRenderer lineRenderer)
         {
             lineRenderer.positionCount = 0;
             lineRenderer.startWidth = 0.005f;
             lineRenderer.endWidth = 0.005f;
-            var material = new Material(Shader.Find("Sprites/Default"));
+            var material = new Material(Shader.Find("Diffuse"));
             material.color = Color.white;
             lineRenderer.material = material;
         }
@@ -652,6 +637,14 @@ namespace Assets.MotionController.Scripts
                 {
                     _rightLaserPointer.positionCount = 0;
                 }
+        }
+
+        private void OutputLog(string message)
+        {
+            if (IsDebugLog)
+            {
+                Debug.Log(message);
+            }
         }
 
         /// <summary>

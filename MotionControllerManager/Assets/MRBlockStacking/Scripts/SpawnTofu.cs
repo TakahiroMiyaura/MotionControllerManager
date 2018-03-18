@@ -1,5 +1,8 @@
-﻿using System;
-using System.Collections;
+﻿// Copyright(c) 2018 Takahiro Miyaura
+// Released under the MIT license
+// http://opensource.org/licenses/mit-license.php
+
+using System;
 using System.Collections.Generic;
 using Assets.MotionController.Scripts;
 using HoloToolkit.Unity;
@@ -8,104 +11,92 @@ using UnityEngine.XR.WSA.Input;
 
 public class SpawnTofu : MonoBehaviour
 {
-
     public GameObject Tofu;
 
     public int MaxCreateTofus;
 
     private Queue<GameObject> _genObject;
 
-	// Use this for initialization
-    private int _count = 0;
+    // Use this for initialization
+    private int _count;
     private GameObject _manipulateObj;
     private float _distance;
 
-    void Start () {
+    private void Start()
+    {
         _genObject = new Queue<GameObject>(MaxCreateTofus);
-	    MotionControllerManager.Instance.SelectHold += SelectHold;
-	    MotionControllerManager.Instance.SelectDown += SelectDown;
-	    MotionControllerManager.Instance.SelectUp += SelectUp;
+        MotionControllerManager.Instance.SelectHold += SelectHold;
+        MotionControllerManager.Instance.SelectDown += SelectDown;
+        MotionControllerManager.Instance.SelectUp += SelectUp;
     }
 
-    void Update () {
-		
+    private void Update()
+    {
     }
 
     private void SelectUp(object sender, EventArgs e)
     {
         var state = (InteractionSourceState) sender;
         if (state.source.handedness == InteractionSourceHandedness.Right)
-        {
             if (_manipulateObj != null)
             {
-
                 _manipulateObj.GetComponent<Rigidbody>().useGravity = true;
                 _manipulateObj.GetComponent<Rigidbody>().isKinematic = false;
                 _manipulateObj = null;
             }
-        }
     }
 
-    private void SelectHold(object sender, EventArgs e)
+    private void SelectHold(object sender, SelectManipulateEventArgs e)
     {
-        var state = (InteractionSourceState)sender;
+        var state = (InteractionSourceState) sender;
         if (state.source.handedness == InteractionSourceHandedness.Left)
         {
             var f = 20 - state.selectPressedAmount * 10;
-            if (_count > f )
+            if (_count > f)
             {
                 _count = 0;
                 GenerateTofu(sender);
             }
+
             _count++;
         }
         else if (state.source.handedness == InteractionSourceHandedness.Right)
         {
             Vector3 gripPosition;
+            Vector3 cursorPosition;
             state.sourcePose.TryGetPosition(out gripPosition, InteractionSourceNode.Grip);
+            state.sourcePose.TryGetPosition(out cursorPosition, InteractionSourceNode.Pointer);
 
-            Vector3 forward = (MotionControllerManager.Instance.PointerCursor.Position- gripPosition).normalized;
-            Quaternion gripRotation;
-            state.sourcePose.TryGetRotation(out gripRotation, InteractionSourceNode.Grip);
-            
+            var forward = (cursorPosition - gripPosition).normalized;
+
             if (_manipulateObj == null)
             {
                 RaycastHit hit;
                 if (Physics.Raycast(gripPosition, forward, out hit, Mathf.Infinity))
                 {
-
                     Debug.Log("Hit!!");
                     if (_genObject.Contains(hit.transform.gameObject))
                     {
                         _manipulateObj = hit.transform.gameObject;
                         _manipulateObj.GetComponent<Rigidbody>().useGravity = false;
                         _manipulateObj.GetComponent<Rigidbody>().isKinematic = true;
-                        Debug.Log("WWWW"+ gripPosition+":"+ hit.transform.position);
-                        _distance = Vector3.Distance(gripPosition,hit.transform.position);
+                        Debug.Log("WWWW" + gripPosition + ":" + hit.transform.position);
+                        _distance = Vector3.Distance(gripPosition, hit.transform.position);
                     }
-
                 }
             }
             else
             {
-
-                Vector3 newPos = gripPosition + forward * _distance;
+                var newPos = gripPosition + forward * _distance;
                 _manipulateObj.transform.position = newPos;
-
-
             }
-
-
         }
     }
 
     private void SelectDown(object sender, EventArgs e)
     {
-        var state = (InteractionSourceState)sender;
-        if (state.source.handedness == InteractionSourceHandedness.Left)
-        {
-            GenerateTofu(sender);
-        }
+        var state = (InteractionSourceState) sender;
+        if (state.source.handedness == InteractionSourceHandedness.Left) GenerateTofu(sender);
     }
 
     private void GenerateTofu(object sender)
@@ -115,7 +106,8 @@ public class SpawnTofu : MonoBehaviour
             var dequeue = _genObject.Dequeue();
             Destroy(dequeue);
         }
-        var instantiate = GameObject.Instantiate(Tofu);
+
+        var instantiate = Instantiate(Tofu);
         _genObject.Enqueue(instantiate);
         var rigid = instantiate.AddComponent<Rigidbody>();
         rigid.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
@@ -124,9 +116,7 @@ public class SpawnTofu : MonoBehaviour
         Vector3 gripPosition;
         state.sourcePose.TryGetPosition(out gripPosition, InteractionSourceNode.Grip);
         if (CameraCache.Main.transform.parent != null)
-        {
             gripPosition = CameraCache.Main.transform.parent.TransformPoint(gripPosition);
-        }
         instantiate.transform.position = gripPosition;
 
         Vector3 forward;
@@ -135,5 +125,4 @@ public class SpawnTofu : MonoBehaviour
         rigid.velocity = forward * 2f;
     }
 
-    // Update is called once per frame
 }
