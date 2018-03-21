@@ -536,12 +536,7 @@ namespace Assets.MotionController.Scripts
                     OutputLog("OnThumbstickUp");
                     OnThumbstickUp(obj.state, thumbstickManipulateEventArgs);
                 }
-                else if (motionControllerState.ThumbstickPressed && obj.state.thumbstickPressed)
-                {
-                    OutputLog("OnThumbstickHold");
-                    OnThumbstickHold(obj.state, thumbstickManipulateEventArgs);
-                }
-
+                
                 OnThumbstickManipulate(obj.state, thumbstickManipulateEventArgs);
                 motionControllerState.ThumbstickPressed = obj.state.thumbstickPressed;
 
@@ -558,14 +553,10 @@ namespace Assets.MotionController.Scripts
                 }
                 else if (!obj.state.touchpadPressed && motionControllerState.TouchpadPressed)
                 {
-                    OutputLog("OnThumbstickHold");
+                    OutputLog("OnThumbstickUp");
                     OnTouchpadUp(obj.state, touchpadManipulateEventArgs);
                 }
-                else if (motionControllerState.TouchpadPressed && obj.state.touchpadPressed)
-                {
-                    OutputLog("OnTouchpadManipulate");
-                    OnTouchpadManipulate(obj.state, touchpadManipulateEventArgs);
-                }
+                OnTouchpadManipulate(obj.state, touchpadManipulateEventArgs);
                 motionControllerState.TouchpadPressed = obj.state.touchpadPressed;
 
                 if (obj.state.touchpadTouched && !motionControllerState.TouchpadTouched)
